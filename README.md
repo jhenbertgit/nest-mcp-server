@@ -19,12 +19,21 @@
     <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
   <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
 </p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+
+# NestJS MCP Server
+
+This project is a NestJS-based server implementation for the Model Context Protocol (MCP). It provides a robust and scalable backend for agents to discover and interact with various tools via a standardized API.
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+This is a NestJS framework TypeScript starter repository, extended to function as an MCP server. It allows for the registration and execution of various tools, exposing them via HTTP endpoints. The server supports both standard request/response and Server-Sent Events (SSE) for streaming tool outputs.
+
+## Features
+
+- **Tool Management**: Register and expose custom tools.
+- **Standardized API**: Interact with tools via defined MCP endpoints.
+- **Streaming Support**: Utilize Server-Sent Events (SSE) for real-time tool output.
+- **Extensible**: Easily add new tools by implementing the `McpTool` interface.
 
 ## Project setup
 
@@ -43,7 +52,37 @@ $ pnpm run start:dev
 
 # production mode
 $ pnpm run start:prod
+
+# start with stdio transport
+$ pnpm run start:stdio
+
+# start with http transport
+$ pnpm run start:http
 ```
+
+## API Endpoints
+
+The server exposes the following MCP-related endpoints:
+
+- `GET /mcp/server-info`: Get basic server information and capabilities.
+- `GET /mcp/tools`: List all available tool definitions.
+- `POST /mcp/tool/call`: Call a specific tool with arguments. Supports SSE for streaming responses.
+
+## Implemented Tools
+
+The following tools are currently implemented and available:
+
+- `file-search`: Search for files within the project directory.
+- `filereader`: Read the content of a specified file.
+- `ping`: A simple tool for testing connectivity.
+
+## Adding New Tools
+
+To add a new tool:
+
+1. Create a new module and service under `src/tools`.
+2. Implement the `McpTool` interface in your service.
+3. Register your tool in `src/mcp/mcp.module.ts` by providing it to the `MCP_TOOLS` injection token.
 
 ## Run tests
 

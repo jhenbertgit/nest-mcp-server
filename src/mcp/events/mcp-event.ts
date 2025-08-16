@@ -1,5 +1,5 @@
 export type McpToolEvent =
-  |
+  | {
       type: 'success';
       result: any;
     }
