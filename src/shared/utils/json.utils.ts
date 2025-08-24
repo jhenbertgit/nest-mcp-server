@@ -11,7 +11,7 @@ export async function parseJson(req: Request): Promise<any> {
     req.on('end', () => {
       try {
         resolve(JSON.parse(body));
-      } catch (err) {
+      } catch {
         reject(new Error('Invalid JSON'));
       }
     });

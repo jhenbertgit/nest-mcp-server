@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { FileReaderService } from './filereader.service';
+import { FileReaderService } from './filereader.service.js';
 
 @Module({
   providers: [FileReaderService],

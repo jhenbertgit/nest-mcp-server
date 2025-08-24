@@ -1,27 +1,17 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Observable, of, from } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { McpTool } from './interfaces/mcp-tool.interface';
-import { McpToolEvent } from './events/mcp-event';
+import { McpTool } from './interfaces/mcp-tool.interface.js';
+import { McpToolEvent } from './events/mcp-event.js';
+import { CallToolRequest } from '@modelcontextprotocol/sdk/types.js';
 
 // Helper functions for type-safe event creation
 function createErrorEvent(message: string): McpToolEvent {
   return { type: 'error', message };
 }
 
-function createSuccessEvent(result: any): McpToolEvent {
-  return { type: 'success', result };
-}
-
-function createProgressEvent(message: string, percent?: number): McpToolEvent {
-  return { type: 'progress', message, percent };
-}
-
-function createLogEvent(
-  level: 'info' | 'warn' | 'error',
-  message: string,
-): McpToolEvent {
-  return { type: 'log', level, message };
+function createSuccessEvent(result: unknown): McpToolEvent {
+  return { type: 'success', result: result as any };
 }
 
 @Injectable()
@@ -42,7 +32,10 @@ export class McpService {
     );
   }
 
-  callToolStream(toolName: string, input: any): Observable<McpToolEvent> {
+  callToolStream(
+    toolName: string,
+    input: Record<string, any>,
+  ): Observable<McpToolEvent> {
     const tool = this.tools.get(toolName);
     if (!tool) {
       return of(createErrorEvent(`Tool '${toolName}' not found`));
@@ -82,7 +75,42 @@ export class McpService {
         );
       }
     } catch (err) {
-      return of(createErrorEvent(`Unexpected error: ${err}`));
+      return of(
+        createErrorEvent(
+          `Unexpected error: ${err instanceof Error ? err.message : String(err)}`,
+        ),
+      );
     }
+  }
+
+  // ✅ Public method to handle tool calls from MCP servers
+  handleCallToolRequest(
+    request: CallToolRequest,
+    notificationCallback: (event: McpToolEvent) => void,
+  ): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const observable = this.callToolStream(
+        request.params.name,
+        request.params.arguments ?? {},
+      );
+
+      observable.subscribe({
+        next: (event) => {
+          if (event.type === 'success') {
+            resolve({ result: event.result });
+          } else if (event.type === 'error') {
+            reject(new Error(event.message));
+          } else if (event.type === 'progress' || event.type === 'log') {
+            notificationCallback(event);
+          }
+        },
+        error: (err) => {
+          reject(err instanceof Error ? err : new Error(String(err)));
+        },
+        complete: () => {
+          resolve({});
+        },
+      });
+    });
   }
 }

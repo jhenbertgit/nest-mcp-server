@@ -6,4 +6,15 @@ export const FileReaderInputSchema = z.object({
   }),
 });
 
+export const FileReaderJsonSchema = {
+  type: 'object',
+  properties: {
+    path: {
+      type: 'string',
+      description: 'The absolute path to the file to read',
+    },
+  },
+  required: ['path'],
+} as const;
+
 export type FileReaderInput = z.infer<typeof FileReaderInputSchema>;

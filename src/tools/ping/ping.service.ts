@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { McpTool } from '../../mcp/interfaces/mcp-tool.interface';
-import { ToolResult } from '../../shared/types/mcp.types';
+import { McpTool } from '../../mcp/interfaces/mcp-tool.interface.js';
+import { ToolResult } from '../../shared/types/mcp.types.js';
 
 @Injectable()
 export class PingService implements McpTool {
@@ -15,8 +15,7 @@ export class PingService implements McpTool {
     };
   }
 
-  async call(): Promise<ToolResult> {
-    return { result: 'pong' };
+  call(): Promise<ToolResult> {
+    return Promise.resolve({ result: 'pong' });
   }
 }
-

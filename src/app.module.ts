@@ -1,15 +1,21 @@
-import { Module } from '@nestjs/common';
+import { Module, DynamicModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { McpModule } from './mcp/mcp.module';
-import configuration from './config/configuration';
+import { McpModule } from './mcp/mcp.module.js';
+import configuration from './config/configuration.js';
 
-@Module({
-  imports: [
-    ConfigModule.forRoot({
-      load: [configuration],
-    }),
-    McpModule.register(),
-  ],
-})
-export class AppModule {}
+@Module({})
+export class AppModule {
+  static async register(): Promise<DynamicModule> {
+    const mcpModule = await McpModule.register();
 
+    return {
+      module: AppModule,
+      imports: [
+        ConfigModule.forRoot({
+          load: [configuration],
+        }),
+        mcpModule,
+      ],
+    };
+  }
+}

@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 
+import { AppModule } from './app.module.js';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
-import { startStdioServer } from './stdio/main';
-import { GlobalExceptionFilter } from './shared/filters/global-exception.filter';
-import { McpService } from './mcp/mcp.service';
+import { startStdioServer } from './stdio/main.js';
+import { setupHttpServer } from './http/main.js';
+import { GlobalExceptionFilter } from './shared/filters/global-exception.filter.js';
+import { McpService } from './mcp/mcp.service.js';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const appModule = await AppModule.register();
+  const app = await NestFactory.create(appModule);
   const configService = app.get(ConfigService);
   const mcpService = app.get(McpService);
 
@@ -17,7 +19,8 @@ async function bootstrap() {
   // Parse CLI args
   const args = process.argv.slice(2);
   const transportArg = args.find((arg) => arg.startsWith('--transport='));
-  const transportMode = transportArg?.split('=')[1] || configService.get('transport');
+  const transportMode =
+    transportArg?.split('=')[1] || configService.get('transport');
 
   // Auto-detect if no explicit flag
   const isPiped = !process.stdin.isTTY;
@@ -28,10 +31,11 @@ async function bootstrap() {
 
   if (shouldUseStdio) {
     console.error('🚀 Starting MCP Server over stdio...');
-    startStdioServer(mcpService);
+    void startStdioServer(mcpService);
   } else if (shouldUseHttp) {
     console.error('🚀 Starting MCP Server over HTTP...');
-    const port = configService.get('port');
+    const port = configService.get('port') as number;
+    setupHttpServer(app);
     await app.listen(port);
     console.log(`🌐 MCP HTTP Server listening on http://localhost:${port}/mcp`);
   } else {
@@ -41,4 +45,7 @@ async function bootstrap() {
   }
 }
 
-bootstrap();
+bootstrap().catch((err) => {
+  console.error('❌ An unexpected error occurred:', err);
+  process.exit(1);
+});

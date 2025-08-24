@@ -1,8 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import * as fs from 'fs/promises';
-import { McpTool } from '../../mcp/interfaces/mcp-tool.interface';
-import { ToolResult } from '../../shared/types/mcp.types';
-import { FileReaderInputSchema, FileReaderInput } from './filereader.schema';
+import { McpTool } from '../../mcp/interfaces/mcp-tool.interface.js';
+import { ToolResult } from '../../shared/types/mcp.types.js';
+import {
+  FileReaderInputSchema,
+  FileReaderInput,
+  FileReaderJsonSchema,
+} from './filereader.schema.js';
 
 @Injectable()
 export class FileReaderService implements McpTool {
@@ -10,7 +14,7 @@ export class FileReaderService implements McpTool {
     return {
       name: 'read_file',
       description: 'Reads content of a file',
-      inputSchema: FileReaderInputSchema,
+      inputSchema: FileReaderJsonSchema,
     };
   }
 
@@ -27,4 +31,3 @@ export class FileReaderService implements McpTool {
     }
   }
 }
-
