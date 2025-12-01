@@ -15,6 +15,8 @@
     "start:http": "node --no-warnings --loader ts-node/esm/transpile-only src/main.ts --transport=http",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
+    "inspector": "set DANGEROUSLY_OMIT_AUTH=true && pnpm dlx @modelcontextprotocol/inspector node dist/main.js --transport=stdio",
+    "inspector:dev": "set DANGEROUSLY_OMIT_AUTH=true && pnpm dlx @modelcontextprotocol/inspector node --no-warnings --loader ts-node/esm/transpile-only src/main.ts --transport=stdio",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -36,6 +38,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
+    "@modelcontextprotocol/inspector": "^0.17.2",
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",

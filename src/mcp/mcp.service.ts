@@ -32,6 +32,20 @@ export class McpService {
     );
   }
 
+  // ✅ Public method to call a tool and return the result
+  async callTool(toolName: string, input: Record<string, any>): Promise<any> {
+    const tool = this.tools.get(toolName);
+    if (!tool) {
+      throw new Error(`Tool '${toolName}' not found`);
+    }
+
+    const result = await tool.call(input);
+    if (result.error) {
+      throw new Error(result.error);
+    }
+    return result.result;
+  }
+
   callToolStream(
     toolName: string,
     input: Record<string, any>,

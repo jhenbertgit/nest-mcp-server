@@ -16,21 +16,26 @@ export class McpModule {
     const toolNames = fs.readdirSync(toolsDir);
 
     for (const toolName of toolNames) {
+      // Check for .ts files (development) or .js files (production)
+      const moduleExt = fs.existsSync(path.join(toolsDir, toolName, `${toolName}.module.ts`)) ? 'ts' : 'js';
+      const serviceExt = fs.existsSync(path.join(toolsDir, toolName, `${toolName}.service.ts`)) ? 'ts' : 'js';
+
       const toolModulePath = path.join(
         toolsDir,
         toolName,
-        `${toolName}.module.ts`,
+        `${toolName}.module.${moduleExt}`,
       );
       const toolServicePath = path.join(
         toolsDir,
         toolName,
-        `${toolName}.service.ts`,
+        `${toolName}.service.${serviceExt}`,
       );
 
       if (fs.existsSync(toolModulePath) && fs.existsSync(toolServicePath)) {
         type ToolModuleExport = { [key: string]: Type<any> };
         type ToolServiceExport = { [key: string]: Type<McpTool> };
 
+        // Always use .js extension for imports (ts-node/tsc will resolve correctly)
         const toolModule = (await import(
           pathToFileURL(path.join(toolsDir, toolName, `${toolName}.module.js`)).href
         )) as ToolModuleExport;

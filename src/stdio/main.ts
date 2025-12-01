@@ -12,30 +12,50 @@ import { AppModule } from '../app.module.js';
  * Starts the MCP server over stdio
  */
 export async function startStdioServer(mcpService: McpService) {
-  const serverInfo = {
-    name: 'nest-mcp-server-stdio',
-    version: '2024-08-15',
-    capabilities: {
-      tools: {},
+  const server = new McpServer(
+    {
+      name: 'nest-mcp-server-stdio',
+      version: '2024-08-15',
     },
-  };
-  const server = new McpServer(serverInfo);
+    {
+      capabilities: {
+        tools: {},
+      },
+    },
+  );
 
-  // Register request handlers
-  server.server.setRequestHandler(ListToolsRequestSchema, () => {
-    return {
-      tools: mcpService.listTools(),
-    };
-  });
+  // Register all tools from MCP service
+  const tools = mcpService.listTools();
+  console.error(`Registering ${tools.length} tools:`, tools.map(t => t.name));
 
-  server.server.setRequestHandler(CallToolRequestSchema, (request) => {
-    return mcpService.handleCallToolRequest(request, (event) => {
-      server.server.notification({
-        method: `notifications/tool/${event.type}`,
-        params: event,
-      });
-    });
-  });
+  for (const tool of tools) {
+    try {
+      server.registerTool(
+        tool.name,
+        {
+          title: tool.name,
+          description: tool.description,
+          inputSchema: tool.inputSchema || {},
+        },
+        async (args: Record<string, any>, _extra) => {
+          const result = await mcpService.callTool(tool.name, args);
+          return {
+            content: [
+              {
+                type: 'text' as const,
+                text: JSON.stringify(result),
+              },
+            ],
+          };
+        },
+      );
+      console.error(`Successfully registered tool: ${tool.name}`);
+    } catch (error) {
+      console.error(`Error registering tool ${tool.name}:`, error);
+    }
+  }
+
+  console.error('All tools registered, server ready');
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
@@ -45,12 +65,5 @@ export async function startStdioServer(mcpService: McpService) {
   process.on('SIGINT', () => process.exit(0));
 }
 
-async function bootstrap() {
-  const app = await NestFactory.createApplicationContext(
-    await AppModule.register(),
-  );
-  const mcpService = app.get(McpService);
-  await startStdioServer(mcpService);
-}
-
-bootstrap();
+// Removed auto-executing bootstrap to prevent unintended server startup on import
+// The startStdioServer function is called from main.ts when stdio transport is selected
